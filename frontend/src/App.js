@@ -79,23 +79,71 @@ function LocationSelector({ position, setPosition, onAddressChange }) {
     e.preventDefault(); // Prevent form submission
     e.stopPropagation(); // Stop event bubbling
     
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
+    // Change button text to show loading
+    const button = e.target;
+    const originalText = button.textContent;
+    button.textContent = 'Getting location...';
+    button.disabled = true;
+    
+    const resetButton = () => {
+      button.textContent = originalText;
+      button.disabled = false;
+    };
+    
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by this browser. Please select your location manually on the map.');
+      resetButton();
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
+          console.log('✅ Geolocation success:', { lat, lng });
+          
           setPosition([lat, lng]);
-          // Get address for current location
-          getAddressFromCoordinates(lat, lng);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          alert('Unable to get your current location. Please select manually on the map.');
+          
+          // Get address for current location with better error handling
+          console.log('🔍 Fetching address for coordinates:', lat, lng);
+          await getAddressFromCoordinates(lat, lng);
+          
+          resetButton();
+        } catch (error) {
+          console.error('❌ Error processing location:', error);
+          alert('Got your location but failed to get address. Please check manually.');
+          resetButton();
         }
-      );
-    } else {
-      alert('Geolocation is not supported by this browser.');
-    }
+      },
+      (error) => {
+        console.error('❌ Geolocation error:', error);
+        let errorMessage = 'Unable to get your current location. ';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'Permission denied. Please allow location access and try again, or select manually on the map.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'Location information unavailable. Please select manually on the map.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'Location request timed out. Please try again or select manually on the map.';
+            break;
+          default:
+            errorMessage += 'Please select manually on the map.';
+            break;
+        }
+        
+        alert(errorMessage);
+        resetButton();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
   };
 
   return (
