@@ -366,6 +366,10 @@ function ComplaintForm({ onSubmit }) {
     'Other'
   ];
 
+  const handleAddressFromLocation = (address) => {
+    setFormData({...formData, address: address});
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const complaintData = {
