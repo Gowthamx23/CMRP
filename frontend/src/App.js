@@ -454,7 +454,11 @@ function ComplaintForm({ onSubmit }) {
         </div>
       </div>
 
-      <LocationSelector position={position} setPosition={setPosition} />
+      <LocationSelector 
+        position={position} 
+        setPosition={setPosition}
+        onAddressChange={handleAddressFromLocation}
+      />
 
       <div>
         <Label htmlFor="image">Upload Image</Label>
