@@ -524,6 +524,7 @@ function ComplaintForm({ onSubmit }) {
             id="address"
             value={formData.address}
             onChange={(e) => setFormData({...formData, address: e.target.value})}
+            placeholder="Select location on map or use current location button"
           />
         </div>
       </div>
