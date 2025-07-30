@@ -42,11 +42,13 @@ api.interceptors.request.use((config) => {
 });
 
 // Map component for location selection
-function LocationSelector({ position, setPosition }) {
+function LocationSelector({ position, setPosition, onAddressChange }) {
   const LocationMarker = () => {
     useMapEvents({
       click(e) {
         setPosition([e.latlng.lat, e.latlng.lng]);
+        // Get address for clicked location
+        getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
       },
     });
 
@@ -57,11 +59,42 @@ function LocationSelector({ position, setPosition }) {
     );
   };
 
-  const getCurrentLocation = () => {
+  const getAddressFromCoordinates = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+      const data = await response.json();
+      
+      if (data && data.display_name) {
+        const address = data.display_name;
+        onAddressChange && onAddressChange(address);
+      }
+    } catch (error) {
+      console.error('Error getting address:', error);
+    }
+  };
+
+  const getCurrentLocation = (e) => {
+    e.preventDefault(); // Prevent form submission
+    e.stopPropagation(); // Stop event bubbling
+    
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        setPosition([pos.coords.latitude, pos.coords.longitude]);
-      });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setPosition([lat, lng]);
+          // Get address for current location
+          getAddressFromCoordinates(lat, lng);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          alert('Unable to get your current location. Please select manually on the map.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by this browser.');
     }
   };
 
