@@ -440,6 +440,7 @@ function ComplaintForm({ onSubmit }) {
   ];
 
   const handleAddressFromLocation = (address) => {
+    console.log('📝 Updating address field with:', address);
     setFormData({...formData, address: address});
   };
 
