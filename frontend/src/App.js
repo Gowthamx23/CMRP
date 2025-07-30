@@ -102,7 +102,12 @@ function LocationSelector({ position, setPosition, onAddressChange }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <Label>Select Location</Label>
-        <Button onClick={getCurrentLocation} variant="outline" size="sm">
+        <Button 
+          type="button" 
+          onClick={getCurrentLocation} 
+          variant="outline" 
+          size="sm"
+        >
           <MapPin className="w-4 h-4 mr-2" />
           Use Current Location
         </Button>
