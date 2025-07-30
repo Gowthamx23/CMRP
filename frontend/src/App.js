@@ -61,17 +61,42 @@ function LocationSelector({ position, setPosition, onAddressChange }) {
 
   const getAddressFromCoordinates = async (lat, lng) => {
     try {
+      console.log('🌐 Making reverse geocoding request for:', { lat, lng });
+      
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'CMRP-App/1.0'
+          }
+        }
       );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('📍 Reverse geocoding response:', data);
       
       if (data && data.display_name) {
         const address = data.display_name;
-        onAddressChange && onAddressChange(address);
+        console.log('✅ Address found:', address);
+        
+        if (onAddressChange) {
+          onAddressChange(address);
+          console.log('✅ Address callback executed');
+        } else {
+          console.warn('⚠️ onAddressChange callback not available');
+        }
+      } else {
+        console.warn('⚠️ No address found in response');
+        onAddressChange && onAddressChange('Location selected (address not found)');
       }
     } catch (error) {
-      console.error('Error getting address:', error);
+      console.error('❌ Error getting address:', error);
+      // Still call callback with coordinates if address lookup fails
+      onAddressChange && onAddressChange(`Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
     }
   };
 
