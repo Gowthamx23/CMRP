@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// Updated imports for routing and charts
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+
 
 // Import UI components
 import { Button } from './components/ui/button';
@@ -15,7 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { Label } from './components/ui/label';
-import { AlertTriangle, MapPin, User, Phone, Mail, FileText, Calendar, Eye, Upload, CheckCircle, Clock, AlertCircle, XCircle } from 'lucide-react';
+// Updated icon imports
+import { AlertTriangle, MapPin, User, Phone, Mail, FileText, Calendar, Eye, Upload, CheckCircle, Clock, AlertCircle, XCircle, Search, BarChart2, PieChart as PieChartIcon } from 'lucide-react';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -43,7 +47,7 @@ api.interceptors.request.use((config) => {
 
 // Map component for location selection
 function LocationSelector({ position, setPosition, onAddressChange }) {
-  const LocationMarker = () => {
+    const LocationMarker = () => {
     useMapEvents({
       click(e) {
         setPosition([e.latlng.lat, e.latlng.lng]);
@@ -104,7 +108,6 @@ function LocationSelector({ position, setPosition, onAddressChange }) {
     e.preventDefault(); // Prevent form submission
     e.stopPropagation(); // Stop event bubbling
     
-    // Change button text to show loading
     const button = e.target;
     const originalText = button.textContent;
     button.textContent = 'Getting location...';
@@ -126,14 +129,8 @@ function LocationSelector({ position, setPosition, onAddressChange }) {
         try {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
-          console.log('✅ Geolocation success:', { lat, lng });
-          
           setPosition([lat, lng]);
-          
-          // Get address for current location with better error handling
-          console.log('🔍 Fetching address for coordinates:', lat, lng);
           await getAddressFromCoordinates(lat, lng);
-          
           resetButton();
         } catch (error) {
           console.error('❌ Error processing location:', error);
@@ -264,9 +261,186 @@ function AuthProvider({ children }) {
   );
 }
 
-// Login Component
-function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true);
+// --- Mock Data for Analytics Charts ---
+const barChartData = [
+  { name: 'Roads', total: 120, resolved: 75 },
+  { name: 'Water', total: 98, resolved: 80 },
+  { name: 'Electricity', total: 75, resolved: 60 },
+  { name: 'Garbage', total: 150, resolved: 90 },
+  { name: 'Safety', total: 45, resolved: 40 },
+];
+
+const pieChartData = [
+  { name: 'Open', value: 45 },
+  { name: 'In Progress', value: 85 },
+  { name: 'Resolved', value: 345 },
+  { name: 'Closed', value: 120 },
+];
+
+const PIE_COLORS = ['#EF4444', '#F59E0B', '#10B981', '#6B7280'];
+
+// --- NEW Home Page Component ---
+function HomePage() {
+  const [trackingId, setTrackingId] = useState('');
+  const navigate = useNavigate();
+
+  const handleTrackComplaint = (e) => {
+    e.preventDefault();
+    if (trackingId.trim()) {
+      navigate(`/track/${trackingId.trim()}`);
+    }
+  };
+
+  return (
+    <div className="bg-slate-900 text-white min-h-screen">
+      {/* 1. Hero Section */}
+      <section className="min-h-[60vh] flex flex-col items-center justify-center text-center p-4 bg-gradient-to-b from-slate-900 to-purple-900/50">
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-4">
+          Voice Your Concerns. Drive the Change.
+        </h1>
+        <p className="max-w-3xl text-lg md:text-xl text-slate-300 mb-8">
+          The Complaint Management & Resolution Portal (CMRP) is your direct line to civic authorities. Report issues, track progress, and help build a better community.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button asChild size="lg" className="bg-purple-600 hover:bg-purple-700">
+            <Link to="/login">Login</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-slate-900 transition-colors">
+            <Link to="/register">Register Account</Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* Main content area */}
+      <main className="container mx-auto px-4 py-12 md:py-20 space-y-16">
+        
+        {/* 2. Complaint Tracker Section */}
+        <section id="tracker">
+          <Card className="max-w-2xl mx-auto bg-slate-800 border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-2xl">
+                <Search className="w-6 h-6 mr-2 text-purple-400" />
+                Track Your Complaint
+              </CardTitle>
+              <CardDescription>
+                Enter the unique tracking ID to check the current status of your complaint.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleTrackComplaint} className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  type="text"
+                  placeholder="e.g., CMP20250809-A4T7B1"
+                  className="flex-grow bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
+                  value={trackingId}
+                  onChange={(e) => setTrackingId(e.target.value)}
+                />
+                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+                  Track Status
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* 3. Analysis Graphs Section */}
+        <section id="analytics">
+          <h2 className="text-3xl font-bold text-center mb-8">
+            Live Complaint Analytics
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            
+            <Card className="lg:col-span-3 bg-slate-800/80 border-slate-700 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BarChart2 className="w-5 h-5 mr-2 text-purple-400" />
+                  Complaints by Category
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={barChartData}>
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }} contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
+                    <Legend />
+                    <Bar dataKey="total" name="Total Filed" fill="#6d28d9" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="resolved" name="Resolved" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2 bg-slate-800/80 border-slate-700 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <PieChartIcon className="w-5 h-5 mr-2 text-purple-400" />
+                  Overall Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={110}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+// --- NEW Tracking Page Component ---
+function TrackingPage() {
+    const { id } = useParams();
+
+    // In a real app, you would fetch the complaint details here using the ID
+    // const [complaint, setComplaint] = useState(null);
+    // const [loading, setLoading] = useState(true);
+    // useEffect(() => {
+    //   api.get(`/api/track/${id}`).then(res => setComplaint(res.data)).finally(() => setLoading(false));
+    // }, [id]);
+
+    return (
+        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
+            <Card className="w-full max-w-md bg-slate-800 border-slate-700">
+                <CardHeader>
+                    <CardTitle>Tracking Complaint</CardTitle>
+                    <CardDescription>
+                      Showing status for ID: <span className="font-bold text-purple-400">{id}</span>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {/* This is where you would display the fetched complaint status, history, etc. */}
+                    <p className="text-center text-slate-400">Complaint details would be displayed here.</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+
+// Login/Register Page Component
+function AuthPage({ mode = 'login' }) {
+  const [isLogin, setIsLogin] = useState(mode === 'login');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -275,6 +449,10 @@ function LoginPage() {
     role: 'citizen'
   });
   const { login, register } = React.useContext(AuthContext);
+
+  useEffect(() => {
+    setIsLogin(mode === 'login');
+  }, [mode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -292,7 +470,9 @@ function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">CMRP</CardTitle>
-          <CardDescription>Complaint Management & Resolution Portal</CardDescription>
+          <CardDescription>
+            {isLogin ? 'Login to your account' : 'Create a new account'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -358,9 +538,13 @@ function LoginPage() {
               <Button
                 type="button"
                 variant="link"
-                onClick={() => setIsLogin(!isLogin)}
+                asChild
               >
-                {isLogin ? 'Need an account? Register' : 'Have an account? Login'}
+                {isLogin ? (
+                  <Link to="/register">Need an account? Register</Link>
+                ) : (
+                  <Link to="/login">Have an account? Login</Link>
+                )}
               </Button>
             </div>
           </form>
@@ -418,7 +602,7 @@ function StatusBadge({ status }) {
 
 // Complaint Form Component
 function ComplaintForm({ onSubmit }) {
-  const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
@@ -454,7 +638,6 @@ function ComplaintForm({ onSubmit }) {
     
     await onSubmit(complaintData, imageFile);
     
-    // Reset form
     setFormData({
       title: '',
       description: '',
@@ -891,7 +1074,7 @@ function Dashboard() {
   );
 }
 
-// Main App Component
+// Main App Component with Updated Routing
 function App() {
   return (
     <AuthProvider>
@@ -913,16 +1096,28 @@ function App() {
               return (
                 <Routes>
                   <Route 
+                    path="/" 
+                    element={user ? <Navigate to="/dashboard" /> : <HomePage />} 
+                  />
+                  <Route 
                     path="/login" 
-                    element={user ? <Navigate to="/dashboard" /> : <LoginPage />} 
+                    element={user ? <Navigate to="/dashboard" /> : <AuthPage mode="login" />} 
+                  />
+                  <Route 
+                    path="/register" 
+                    element={user ? <Navigate to="/dashboard" /> : <AuthPage mode="register" />} 
+                  />
+                   <Route 
+                    path="/track/:id" 
+                    element={<TrackingPage />} 
                   />
                   <Route 
                     path="/dashboard" 
                     element={user ? <Dashboard /> : <Navigate to="/login" />} 
                   />
                   <Route 
-                    path="/" 
-                    element={<Navigate to={user ? "/dashboard" : "/login"} />} 
+                    path="*" 
+                    element={<Navigate to={user ? "/dashboard" : "/"} />} 
                   />
                 </Routes>
               );
