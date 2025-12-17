@@ -1,6 +1,6 @@
 # CMRP – Civic Issue Reporting Platform
 
-CMRP is a full-stack web application that enables users to report and track civic issues, supporting photo uploads, geo-tagging, and role-based access (User, Official, Admin). Designed for real-world use, it leverages React for the frontend, Spring Boot for the backend, and PostgreSQL as its database.
+CMRP is a full-stack web application that enables users to report and track civic issues, supporting photo uploads, geo-tagging, and role-based access (User, Official, Admin). Designed for real-world use, it leverages React for the frontend, Spring Boot for the backend, and MongoDB as its database.
 
 ## Features
 
@@ -15,7 +15,7 @@ CMRP is a full-stack web application that enables users to report and track civi
 
 - **Frontend:** React (JavaScript)
 - **Backend:** Spring Boot (Java)
-- **Database:** PostgreSQL
+- **Database:** MongoDB
 - **Additional:** JWT (authentication), Photo upload handling
 
 ## Getting Started
