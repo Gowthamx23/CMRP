@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 const PublicDashboard = () => {
   const [complaints, setComplaints] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [filters, setFilters] = useState({
     status: "",
     category: "",
@@ -19,8 +20,16 @@ const PublicDashboard = () => {
     setComplaints(await res.json());
   };
 
+  const fetchAnalytics = async () => {
+    const res = await fetch(`/api/analytics/public`);
+    if (res.ok) setAnalytics(await res.json());
+  };
+
   useEffect(() => {
     fetchComplaints();
+    fetchAnalytics();
+    const id = setInterval(fetchAnalytics, 30000);
+    return () => clearInterval(id);
     // eslint-disable-next-line
   }, []);
 
@@ -36,6 +45,14 @@ const PublicDashboard = () => {
   return (
     <div>
       <h2>Public Complaints Dashboard</h2>
+      {analytics && (
+        <div style={{ display: 'flex', gap: 16, margin: '12px 0' }}>
+          <div><strong>Total:</strong> {analytics.total}</div>
+          <div><strong>Pending:</strong> {analytics.byStatus?.PENDING ?? 0}</div>
+          <div><strong>In Progress:</strong> {analytics.byStatus?.IN_PROGRESS ?? 0}</div>
+          <div><strong>Resolved:</strong> {analytics.byStatus?.RESOLVED ?? 0}</div>
+        </div>
+      )}
       <form onSubmit={handleFilter} style={{ marginBottom: 16 }}>
         <input name="status" placeholder="Status" value={filters.status} onChange={handleChange} />
         <input name="category" placeholder="Category" value={filters.category} onChange={handleChange} />
@@ -47,7 +64,7 @@ const PublicDashboard = () => {
       <table>
         <thead>
           <tr>
-            <th>Tracking ID</th>
+            <th>Public ID</th>
             <th>Status</th>
             <th>Category</th>
             <th>Priority</th>
@@ -56,9 +73,9 @@ const PublicDashboard = () => {
           </tr>
         </thead>
         <tbody>
-          {complaints.map((c) => (
-            <tr key={c.tracking_id}>
-              <td>{c.tracking_id}</td>
+          {complaints.map((c, idx) => (
+            <tr key={c.public_id || idx}>
+              <td>{c.public_id}</td>
               <td>{c.status}</td>
               <td>{c.category}</td>
               <td>{c.priority}</td>

@@ -53,6 +53,8 @@ venv/
 .venv/
 penv/
 .penv/
+.env
+backend/.env
 
 # Development tools
 chainlit.md
@@ -74,6 +76,7 @@ agenthub/agents/youtube/db
 *.pack
 *.deb
 *.dylib
+backend/uploads/
 
 # Build caches
 .cache/
