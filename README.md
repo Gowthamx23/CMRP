@@ -1,6 +1,6 @@
 # CMRP – Civic Issue Reporting Platform
 
-CMRP is a full-stack web application that enables users to report and track civic issues, supporting photo uploads, geo-tagging, and role-based access (User, Official, Admin). Designed for real-world use, it leverages React for the frontend, Spring Boot for the backend, and MongoDB as its database.
+CMRP is a full-stack web application that enables users to report and track civic issues, supporting photo uploads, geo-tagging, and role-based access (User, Official, Admin). Designed for real-world use, it leverages React for the frontend, FastAPI for the backend, and MongoDB as its database.
 
 ## Features
 
@@ -14,7 +14,7 @@ CMRP is a full-stack web application that enables users to report and track civi
 ## Tech Stack
 
 - **Frontend:** React (JavaScript)
-- **Backend:** Spring Boot (Java)
+- **Backend:** FastAPI (Python)
 - **Database:** MongoDB
 - **Additional:** JWT (authentication), Photo upload handling
 
@@ -23,19 +23,21 @@ CMRP is a full-stack web application that enables users to report and track civi
 ### Prerequisites
 
 - Node.js and npm (for frontend)
-- Java & Maven (for backend)
-- PostgreSQL (for database)
+- Python & pip (for backend FastAPI)
+- MongoDB (for database)
 
 ### Setup
 
-#### 1. Backend (Spring Boot)
+#### 1. Backend (FastAPI)
 
 ```bash
 cd backend/
-mvn install
-mvn spring-boot:run
+python -m venv env
+source env/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
-- Configure DB credentials in `application.properties`.
+- Configure MongoDB credentials in `.env`.
 
 #### 2. Frontend (React)
 
@@ -44,12 +46,11 @@ cd frontend/
 npm install
 npm start
 ```
-- Update API endpoints in frontend config if needed.
+- Update API endpoints in frontend config (if needed).
 
 #### 3. Database
 
-- Create the PostgreSQL database
-- Run migrations/scripts located in `backend/db/` (if present)
+Ensure MongoDB is running and accessible via the configured `MONGO_URL`.
 
 ### Usage
 
@@ -61,8 +62,7 @@ npm start
 
 ```
 frontend/     # React app
-backend/      # Spring Boot API
-db/           # Database scripts and migrations
+backend/      # FastAPI server
 ```
 
 ## License
